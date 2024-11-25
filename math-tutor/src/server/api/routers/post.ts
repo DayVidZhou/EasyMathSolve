@@ -3,48 +3,11 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import OpenAI from 'openai';
 
-
-
-// Mocked DB
-interface Post {
-  id: number;
-  name: string;
-}
-const posts: Post[] = [
-  {
-    id: 1,
-    name: "Hello World",
-  },
-];
-
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
 export const postRouter = createTRPCRouter({
-  hello: publicProcedure
-    .input(z.object({ text: z.string() }))
-    .query(({ input }) => {
-      return {
-        greeting: `Hello ${input.text}`,
-      };
-    }),
-
-  create: publicProcedure
-    .input(z.object({ name: z.string().min(1) }))
-    .mutation(async ({ input }) => {
-      const post: Post = {
-        id: posts.length + 1,
-        name: input.name,
-      };
-      posts.push(post);
-      return post;
-    }),
-
-  getLatest: publicProcedure.query(() => {
-    return posts.at(-1) ?? null;
-  }),
-
   solveMath: publicProcedure
     .input(
       z.object({
@@ -61,7 +24,7 @@ export const postRouter = createTRPCRouter({
             {
               role: "system",
               content:
-                "You are a helpful assistant. If given a math problem, provide a step-by-step solution. If it's not a math problem, respond with 'This is not a math problem.'",
+                "If the math problem isn’t a multiplication problem, return a empty message. if it is then solve the given math problem and give the output as a JSON object. In the JSON object, have a key called steps, where the value is an array of strings and each element of the array is a step in solving the math problem, do not include the final solution in the list of steps. Have another key called firstNumber and another key called secondNumber, those keys will hold the values of the numbers being multiplied.",
             },
             {
               role: "user",
